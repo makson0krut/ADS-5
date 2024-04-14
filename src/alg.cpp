@@ -3,103 +3,93 @@
 #include <map>
 #include "tstack.h"
 
+bool isDigit(char b) {
+  return (b >= '0' && b <= '9');
+}
+bool isOperator(char z) {
+  return (z == '+' ||  z == '-' || z == '*' ||
+  z == '/' ||  z == '(' || z == ')');
+}
+int Prioritet(char v) {
+  if (v == '+' || v == '-')
+  return 1;
+  if (v == '*' || v == '/')
+  return 2;
+return 0;
+}
 std::string infx2pstfx(std::string inf) {
-    int count = 0, count1 = 0, count2 = 0;
-    std::string res;
-    std::string exit;
-    for (auto c : inf) {
-        count += 1;
-    }
-    for (int i = 0; i < count; ++i) {
-        int prior = getPrior(inf[i]);
-        char op = inf[i];
-        if (prior == -1) {
-            vixod.push(inf[i]);
-        } else {
-            if (prior > getPrior(charstack.peek()) || charstack.isEmpty()) {
-                charstack.push(op);
-            } else if (prior == 0) {
-                charstack.push(op);
-            } else if (op == ')') {
-                while (prior <= getPrior(charstack.peek())) {
-                    if (charstack.peek() != '(' && charstack.peek() != ')') {
-                        vixod.push(charstack.peek());
-                    }
-                    charstack.pop();
-                }
-                charstack.pop();
-            } else {
-                while (prior <= getPrior(charstack.peek())) {
-                    if (charstack.peek() != '(' && charstack.peek() != ')') {
-                        vixod.push(charstack.peek());
-                    }
-                    charstack.pop();
-                }
-                charstack.push(op);
+  std::string pos;
+  int count = 0;
+    TStack <char, 100> stack;
+    for (char c : inf) {
+      if (isDigit(c)) {
+        count++;
+      if (count == 1) {
+        pos += c;
+          continue;
             }
+            pos = pos + ' ' + c;
+      } else if (isOperator(c)) {
+        if (c == '(') {
+          stack.push(c);
+      } else if (stack.isEmpty()) {
+          stack.push(c);
+      } else if (Prioritet(c) > Prioritet(stack.get())) {
+          stack.push(c);
+      } else if (c == ')') {
+        while (stack.get() != '(') {
+          pos = pos + ' ' + stack.get();
+            stack.pop();
         }
+        stack.pop();
+      } else {
+        int a = Prioritet(c);
+        int b = Prioritet(stack.get());
+          while (!stack.isEmpty() && a <= b) {
+            pos = pos + ' ' + stack.get();
+              stack.pop();
+          }
+          stack.push(c);
+      }
     }
-    while (!charstack.isEmpty()) {
-        if (charstack.peek() != '(' && charstack.peek() != ')') {
-            vixod.push(charstack.peek());
-        }
-        charstack.pop();
-    }
-    res.resize(count);
-    auto it = res.rbegin();
-    while (!vixod.isEmpty()) {
-        *it = vixod.peek();
-        vixod.pop();
-        ++it;
-        count1 += 1;
-    }
-    for (auto a : res) {
-        if (res.find(' ')) {
-            count2 += 1;
-        }
-    }
-    int get = count2 - count1;
-    for (int i = get; i < count; ++i) {
-        char ex = res[i];
-        exit.push_back(ex);
-        exit.push_back(' ');
-    }
-    exit.pop_back();
-    return exit;
+  }
+  while (!stack.isEmpty()) {
+    pos = pos + ' ' + stack.get();
+      stack.pop();
+  }
+return pos;
 }
 
+
 int eval(std::string pref) {
-   int count = 0;
-   for (auto c : pref) {
-       count += 1;
-   }
-   for (int i = 0; i < count; ++i) {
-       if (pref[i] >= 48 && pref[i] <= 57) {
-           if (pref[i] == 48)
-               intstack.push(0);
-           if (pref[i] == 49)
-               intstack.push(1);
-           if (pref[i] == 50)
-               intstack.push(2);
-           if (pref[i] == 51)
-               intstack.push(3);
-           if (pref[i] == 52)
-               intstack.push(4);
-           if (pref[i] == 53)
-               intstack.push(5);
-           if (pref[i] == 54)
-               intstack.push(6);
-           if (pref[i] == 55)
-               intstack.push(7);
-           if (pref[i] == 56)
-               intstack.push(8);
-           if (pref[i] == 57)
-               intstack.push(9);
-       } else if (pref[i] >= 42 && pref[i] <= 47) {
-           char oper = pref[i];
-           int c = operat(oper);
-           intstack.push(c);
-       }
-   }
-   return intstack.peek();
+  TStack <int, 100> stack;
+  for (char c : pref) {
+    if (isDigit(c)) {
+      stack.push(c - '0');
+    } else if (isOperator(c)) {
+      int q = stack.get();
+      stack.pop();
+      int w = stack.get();
+      stack.pop();
+      switch (c) {
+        case '+':
+          stack.push(q + w);
+          break;
+        case '-':
+          stack.push(w - q);
+          break;
+        case '*':
+          stack.push(q * w);
+          break;
+        case '/':
+          stack.push(w / q);
+          break;
+        default:
+          continue;
+      }
+    } else {
+      continue;
+    }
+  }
+return stack.get();
 }
